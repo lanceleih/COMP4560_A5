@@ -314,7 +314,7 @@ namespace asgn5v1
             // 
             // Transformer
             // 
-            this.AutoScaleBaseSize = new System.Drawing.Size(8, 19);
+            this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.ClientSize = new System.Drawing.Size(508, 306);
             this.Controls.Add(this.toolBar1);
             this.Name = "Transformer";
@@ -393,17 +393,7 @@ namespace asgn5v1
             screenWidth = this.Size.Width;
             screenHeight = this.Size.Height;
             origin = new Point(screenWidth / 2, screenHeight / 2);
-
-            // prepare matrix
-            for(int i = 0; i < 4; i++)
-            {
-                for(int j = 0; j < 4; j++)
-                {
-                    ctrans[i,j] = 0.0d;
-                    ctrans[i, i] = 1.0d;
-                }
-            }
-
+            
             ctrans[0, 0] = (origin.Y / shapeHeight);
             ctrans[1, 1] = -(origin.Y / shapeHeight);
             ctrans[3, 0] = -(shapeWidth / 2) * (origin.Y / shapeHeight) + origin.X;
@@ -545,22 +535,74 @@ namespace asgn5v1
 
 		private void toolBar1_ButtonClick(object sender, System.Windows.Forms.ToolBarButtonClickEventArgs e)
 		{
-			if (e.Button == transleftbtn)
-			{
-				Refresh();
+            double[,] transformation = new double[4,4];
+            double temp;           
+
+            if (e.Button == transleftbtn)
+            {
+                setIdentity(transformation, 4, 4);
+                transformation[3, 0] = -75;;
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        temp = 0.0d;
+                        for (int k = 0; k < 4; k++)
+                            temp += ctrans[i, k] * transformation[k, j];
+                        ctrans[i, j] = temp;
+                    }
+                }
+
+                Refresh();
 			}
-			if (e.Button == transrightbtn) 
-			{
-				Refresh();
+			if (e.Button == transrightbtn)
+            {
+                setIdentity(transformation, 4, 4);
+                transformation[3, 0] = 75; ;
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        temp = 0.0d;
+                        for (int k = 0; k < 4; k++)
+                            temp += ctrans[i, k] * transformation[k, j];
+                        ctrans[i, j] = temp;
+                    }
+                }
+                Refresh();
 			}
 			if (e.Button == transupbtn)
 			{
-				Refresh();
+                setIdentity(transformation, 4, 4);
+                transformation[3, 1] = -35; ;
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        temp = 0.0d;
+                        for (int k = 0; k < 4; k++)
+                            temp += ctrans[i, k] * transformation[k, j];
+                        ctrans[i, j] = temp;
+                    }
+                }
+                Refresh();
 			}
 			
 			if(e.Button == transdownbtn)
 			{
-				Refresh();
+                setIdentity(transformation, 4, 4);
+                transformation[3, 1] = 35; ;
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        temp = 0.0d;
+                        for (int k = 0; k < 4; k++)
+                            temp += ctrans[i, k] * transformation[k, j];
+                        ctrans[i, j] = temp;
+                    }
+                }
+                Refresh();
 			}
 			if (e.Button == scaleupbtn) 
 			{
