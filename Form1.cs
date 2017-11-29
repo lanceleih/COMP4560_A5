@@ -366,6 +366,19 @@ namespace asgn5v1
                         (int)scrnpts[lines[i, 1], 0], (int)scrnpts[lines[i, 1], 1]);
                 }
 
+                // testing
+                    grfx.DrawLine(pen, screenWidth/2, 0, screenWidth/2, screenHeight);
+                    grfx.DrawLine(pen, 0, screenHeight / 2, screenWidth, screenHeight /2);
+                
+                double[] center = new double[] {shapeWidth/2, shapeHeight/2, 0.0d, 1.0d };
+                getShapeCenter(ref center);
+
+
+                pen = new Pen(Color.DeepSkyBlue, 3);
+                grfx.DrawLine(pen, 0, 0, (float)center[0], (float)center[1]);
+
+
+
 
             } // end of gooddata block	
 		} // end of OnPaint
@@ -533,84 +546,43 @@ namespace asgn5v1
 			
 		}
 
+        /// <summary>
+        /// Dispatching to other transformation functions
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
 		private void toolBar1_ButtonClick(object sender, System.Windows.Forms.ToolBarButtonClickEventArgs e)
-		{
-            double[,] transformation = new double[4,4];
-            double temp;           
-
+		{        
             if (e.Button == transleftbtn)
             {
-                setIdentity(transformation, 4, 4);
-                transformation[3, 0] = -75;;
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        temp = 0.0d;
-                        for (int k = 0; k < 4; k++)
-                            temp += ctrans[i, k] * transformation[k, j];
-                        ctrans[i, j] = temp;
-                    }
-                }
-
+                translate(-75.0d, 0.0d);
                 Refresh();
-			}
+            }
 			if (e.Button == transrightbtn)
             {
-                setIdentity(transformation, 4, 4);
-                transformation[3, 0] = 75; ;
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        temp = 0.0d;
-                        for (int k = 0; k < 4; k++)
-                            temp += ctrans[i, k] * transformation[k, j];
-                        ctrans[i, j] = temp;
-                    }
-                }
+                translate(75.0d, 0.0d);
                 Refresh();
-			}
+            }
 			if (e.Button == transupbtn)
-			{
-                setIdentity(transformation, 4, 4);
-                transformation[3, 1] = -35; ;
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        temp = 0.0d;
-                        for (int k = 0; k < 4; k++)
-                            temp += ctrans[i, k] * transformation[k, j];
-                        ctrans[i, j] = temp;
-                    }
-                }
+            {
+                translate(0.0d, -35.0d);
                 Refresh();
-			}
+            }
 			
 			if(e.Button == transdownbtn)
 			{
-                setIdentity(transformation, 4, 4);
-                transformation[3, 1] = 35; ;
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        temp = 0.0d;
-                        for (int k = 0; k < 4; k++)
-                            temp += ctrans[i, k] * transformation[k, j];
-                        ctrans[i, j] = temp;
-                    }
-                }
+                translate(0.0d, 35.0d);
                 Refresh();
-			}
+            }
 			if (e.Button == scaleupbtn) 
 			{
-				Refresh();
-			}
-			if (e.Button == scaledownbtn) 
-			{
-				Refresh();
+                scale(1.10d);
+                Refresh();
+            }
+			if (e.Button == scaledownbtn)
+            {
+                scale(.90d);
+                Refresh();
 			}
 			if (e.Button == rotxby1btn) 
 			{
@@ -660,6 +632,68 @@ namespace asgn5v1
 			}
 
 		}
+
+        private void translate(double xfactor, double yfactor)
+        {
+            double[,] transformation = new double[4, 4];
+            double temp;
+
+            setIdentity(transformation, 4, 4);
+            transformation[3, 0] = xfactor;
+            transformation[3, 1] = yfactor;
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    temp = 0.0d;
+                    for (int k = 0; k < 4; k++)
+                        temp += ctrans[i, k] * transformation[k, j];
+                    ctrans[i, j] = temp;
+                }
+            }
+        }
+
+
+        private void scale(double factor)
+        {
+            double[,] transformation = new double[4, 4];
+            double temp;
+            setIdentity(transformation, 4, 4);
+
+            double[] center = new double[] { shapeWidth / 2, shapeHeight / 2, 0, 1 };
+            getShapeCenter(ref center);
+
+            translate(-1.0d * center[0], -1.0d * center[1]);        // translate to 0 0
+
+            transformation[0, 0] = factor;                          // do scaling
+            transformation[1,1] = factor;
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    temp = 0.0d;
+                    for (int k = 0; k < 4; k++)
+                        temp += ctrans[i, k] * transformation[k, j];
+                    ctrans[i, j] = temp;
+                }
+            }
+
+            translate(center[0], center[1]);    // translate back
+        }
+
+        public void getShapeCenter(ref double[] center)
+        {
+            double temp;
+            for (int i = 0; i < 4; i++)
+            {
+                temp = 0.0d;
+                for (int j = 0; j < 4; j++)
+                    temp += center[j] * ctrans[j, i];
+                center[i] = temp;
+            }
+
+
+        }
 
 		
 	}
