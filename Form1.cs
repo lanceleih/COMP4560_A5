@@ -314,7 +314,7 @@ namespace asgn5v1
             // 
             // Transformer
             // 
-            this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
+            this.AutoScaleBaseSize = new System.Drawing.Size(10, 24);
             this.ClientSize = new System.Drawing.Size(508, 306);
             this.Controls.Add(this.toolBar1);
             this.Name = "Transformer";
@@ -338,7 +338,7 @@ namespace asgn5v1
 		protected override void OnPaint(PaintEventArgs pea)
 		{
 			Graphics grfx = pea.Graphics;
-         Pen pen = new Pen(Color.White, 3);
+            Pen pen = new Pen(Color.White, 3);
 			double temp;
 			int k;
 
@@ -375,9 +375,10 @@ namespace asgn5v1
 
 
                 pen = new Pen(Color.DeepSkyBlue, 3);
-                grfx.DrawLine(pen, 0, 0, (float)center[0], (float)center[1]);
+                // true center = scrnpts[0,0],[0,1],[0,2] (no need to calculate :D)
+                grfx.DrawLine(pen, 0, 0, (float)scrnpts[0,0], (float)scrnpts[0, 1]);
 
-
+                
 
 
             } // end of gooddata block	
@@ -403,14 +404,70 @@ namespace asgn5v1
 
 		void RestoreInitialImage()
 		{
-            screenWidth = this.Size.Width;
-            screenHeight = this.Size.Height;
+            screenWidth = this.Width;
+            screenHeight = this.Height;
             origin = new Point(screenWidth / 2, screenHeight / 2);
+
+            double initialScale = screenHeight / shapeHeight / 2;
+
+            double[,] transO = new double[,]
+            {
+                { 1, 0, 0, 0 },
+                { 0, 1, 0, 0 },
+                { 0, 0, 1, 0 },
+                { -vertices[0,0], -vertices[0,1], -vertices[0,2], 1}
+            };
+
+            double[,] scaleO = new double[,]
+            {
+                { initialScale, 0, 0, 0 },
+                { 0, -initialScale, 0, 0 },
+                { 0, 0, initialScale, 0 },
+                { 0, 0, 0, 1}
+            };
+
+            double[,] transBack = new double[,]
+            {
+                { 1, 0, 0, 0 },
+                { 0, 1, 0, 0 },
+                { 0, 0, 1, 0 },
+                { origin.X, origin.Y, 0, 1}
+            };
+
+            double[,] tnet = multMatrices(transO, scaleO);
+            tnet = multMatrices(tnet, transBack);
+            ctrans = tnet;
+            // scrnpts = new double[4, 4];
+            /*screenWidth = this.Width;
+            screenHeight = this.Height;
+
+            origin = new Point(screenWidth / 2, screenHeight / 2);
+
+            double centerx = vertices[0, 0];
+            double centery = vertices[0, 1];
+            double centerz = vertices[0, 2];
+
+            translate(-centerx, -centery, -centerz);
+
+            scale(-shapeHeight);
+
+            for(int i = 0; i < ctrans.GetLength(0); i++)
+            {
+                for (int j = 0; j < ctrans.GetLength(1); j++) 
+                {
+                    Console.Write(ctrans[i, j] + " ");
+                }
+                Console.WriteLine();
+            }
             
+            Console.WriteLine(centerx + " " + centery + " " + centerz);
+
+            translate(centerx, centery, centerz);*/
+            /*
             ctrans[0, 0] = (origin.Y / shapeHeight);
             ctrans[1, 1] = -(origin.Y / shapeHeight);
             ctrans[3, 0] = -(shapeWidth / 2) * (origin.Y / shapeHeight) + origin.X;
-            ctrans[3, 1] = -(shapeHeight / 2) * -(origin.Y / shapeHeight) + origin.Y;
+            ctrans[3, 1] = -(shapeHeight / 2) * -(origin.Y / shapeHeight) + origin.Y; */
 
             Invalidate();
 		} // end of RestoreInitialImage
@@ -462,7 +519,47 @@ namespace asgn5v1
 			}
 			scrnpts = new double[numpts,4];
 			setIdentity(ctrans,4,4);  //initialize transformation matrix to identity
-			return true;
+
+            screenWidth = this.Width;
+            screenHeight = this.Height;
+            origin = new Point(screenWidth / 2, screenHeight / 2);
+
+            double initialScale = screenHeight / shapeHeight / 2;
+
+            double[,] transO = new double[,]
+            {
+                { 1, 0, 0, 0 },
+                { 0, 1, 0, 0 },
+                { 0, 0, 1, 0 },
+                { -vertices[0,0], -vertices[0,1], -vertices[0,2], 1}
+            };
+
+            double[,] scaleO = new double[,]
+            {
+                { initialScale, 0, 0, 0 },
+                { 0, -initialScale, 0, 0 },
+                { 0, 0, initialScale, 0 },
+                { 0, 0, 0, 1}
+            };
+
+            double[,] transBack = new double[,]
+            {
+                { 1, 0, 0, 0 },
+                { 0, 1, 0, 0 },
+                { 0, 0, 1, 0 },
+                { origin.X, origin.Y, 0, 1}
+            };
+
+            double[,] tnet = multMatrices(transO,scaleO);
+            tnet = multMatrices(tnet, transBack);
+            ctrans = tnet;
+
+            /*ctrans[0, 0] = (origin.Y / shapeHeight);
+            ctrans[1, 1] = -(origin.Y / shapeHeight);
+            ctrans[3, 0] = -(shapeWidth / 2) * (origin.Y / shapeHeight) + origin.X;
+            ctrans[3, 1] = -(shapeHeight / 2) * -(origin.Y / shapeHeight) + origin.Y;*/
+
+            return true;
 		} // end of GetNewData
 
 		void DecodeCoords(ArrayList coorddata)
@@ -518,6 +615,7 @@ namespace asgn5v1
                 else if (vertices[i, 0] < minHeight)
                     minHeight = vertices[i, 0];
             }
+
             shapeHeight = maxHeight - minHeight;
 
             // height
@@ -586,16 +684,20 @@ namespace asgn5v1
 			}
 			if (e.Button == rotxby1btn) 
 			{
+                rotateOnce("x");
+                Refresh();
 				
 			}
 			if (e.Button == rotyby1btn) 
 			{
-				
-			}
+                rotateOnce("y");
+                Refresh();
+            }
 			if (e.Button == rotzby1btn) 
 			{
-				
-			}
+                rotateOnce("z");
+                Refresh();
+            }
 
 			if (e.Button == rotxbtn) 
 			{
@@ -633,14 +735,45 @@ namespace asgn5v1
 
 		}
 
-        private void translate(double xfactor, double yfactor)
+        private double[,] multMatrices(double[,] m1, double[,] m2)
         {
-            double[,] transformation = new double[4, 4];
+            double[,] result = new double[m1.GetLength(0),m2.GetLength(0)];
             double temp;
 
-            setIdentity(transformation, 4, 4);
+            for(int i = 0; i < 4; i++)
+            {
+                for(int j = 0; j < 4; j++)
+                {
+                    temp = 0.0d;
+
+                    for (int k = 0; k < 4; k++)
+                        temp += m1[i, k] * m2[k, j];
+                    result[i, j] = temp;
+                }
+            }
+
+
+            return result;
+        }
+
+        private void translate(double xfactor, double yfactor, double zfactor = 0)
+        {
+            double[,] transformation = new double[,]
+            {
+                { 1, 0, 0, 0 },
+                { 0, 1, 0, 0 },
+                { 0, 0, 1, 0 },
+                { xfactor, yfactor, 0, 1}
+            };
+
+            ctrans = multMatrices(ctrans, transformation);
+
+            
+
+            /*setIdentity(transformation, 4, 4);
             transformation[3, 0] = xfactor;
             transformation[3, 1] = yfactor;
+            transformation[3, 2] = zfactor;
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < 4; j++)
@@ -650,35 +783,35 @@ namespace asgn5v1
                         temp += ctrans[i, k] * transformation[k, j];
                     ctrans[i, j] = temp;
                 }
-            }
+            }*/
         }
 
 
         private void scale(double factor)
         {
-            double[,] transformation = new double[4, 4];
-            double temp;
-            setIdentity(transformation, 4, 4);
-
-            double[] center = new double[] { shapeWidth / 2, shapeHeight / 2, 0, 1 };
-            getShapeCenter(ref center);
-
-            translate(-1.0d * center[0], -1.0d * center[1]);        // translate to 0 0
-
-            transformation[0, 0] = factor;                          // do scaling
-            transformation[1,1] = factor;
-            for (int i = 0; i < 4; i++)
+            double[,] transO = new double[,]
             {
-                for (int j = 0; j < 4; j++)
-                {
-                    temp = 0.0d;
-                    for (int k = 0; k < 4; k++)
-                        temp += ctrans[i, k] * transformation[k, j];
-                    ctrans[i, j] = temp;
-                }
-            }
+                { factor, 0, 0, 0 },
+                { 0, factor, 0, 0 },
+                { 0, 0, factor, 0 },
+                { 0, 0, 0, 1}
+            };
 
-            translate(center[0], center[1]);    // translate back
+            /*double[] center = new double[] { shapeWidth / 2, shapeHeight / 2, 0, 1 };
+            getShapeCenter(ref center);*/
+
+            translate(-scrnpts[0,0], -scrnpts[0,1], -scrnpts[0,2]);        // translate to 0 0
+
+            ctrans = multMatrices(ctrans, transO);
+            
+            translate(scrnpts[0, 0], scrnpts[0, 1], scrnpts[0, 2]);    // translate back
+        }
+
+        private void rotateOnce(string axis)
+        {
+            
+
+
         }
 
         public void getShapeCenter(ref double[] center)
