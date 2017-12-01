@@ -789,7 +789,7 @@ namespace asgn5v1
 
         private void scale(double factor)
         {
-            double[,] transO = new double[,]
+            double[,] scale = new double[,]
             {
                 { factor, 0, 0, 0 },
                 { 0, factor, 0, 0 },
@@ -802,14 +802,52 @@ namespace asgn5v1
 
             translate(-scrnpts[0,0], -scrnpts[0,1], -scrnpts[0,2]);        // translate to 0 0
 
-            ctrans = multMatrices(ctrans, transO);
+            ctrans = multMatrices(ctrans, scale);
             
             translate(scrnpts[0, 0], scrnpts[0, 1], scrnpts[0, 2]);    // translate back
         }
 
         private void rotateOnce(string axis)
         {
-            
+            double[,] rotation = new double[4,4];
+
+            switch(axis)
+            {
+                case "x":
+                    rotation = new double[,]
+                    {
+                        { 1, 0, 0, 0 },
+                        { 0, Math.Cos(0.52), Math.Sin(0.52), 0 },
+                        { 0, -Math.Sin(0.52), Math.Cos(0.52), 0 },
+                        { 0, 0, 0, 1}
+                    };
+                    break;
+                case "y":
+                    rotation = new double[,]
+                    {
+                        { Math.Cos(0.52), 0, Math.Sin(0.52), 0 },
+                        { 0, 1, 0, 0 },
+                        { -Math.Sin(0.52), 0, Math.Cos(0.52), 0 },
+                        { 0, 0, 0, 1}
+                    };
+                    break;
+                case "z":
+                    rotation = new double[,]
+                    {
+                        { Math.Cos(0.52), Math.Sin(0.52), 0, 0 },
+                        { -Math.Sin(0.52), Math.Cos(0.52), 0, 0 },
+                        {0,  0, 1, 0 },
+                        { 0, 0, 0, 1}
+                    };
+                    break;
+            }
+
+            translate(-scrnpts[0, 0], -scrnpts[0, 1], -scrnpts[0, 2]);        // translate to 0 0
+
+            ctrans = multMatrices(ctrans, rotation);
+
+            translate(scrnpts[0, 0], scrnpts[0, 1], scrnpts[0, 2]);    // translate back
+
 
 
         }
