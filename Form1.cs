@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Data;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace asgn5v1
 {
@@ -56,6 +57,7 @@ namespace asgn5v1
 
         double shapeHeight;
         double shapeWidth;
+        private bool cont;
 
 		public Transformer()
 		{
@@ -437,37 +439,7 @@ namespace asgn5v1
             double[,] tnet = multMatrices(transO, scaleO);
             tnet = multMatrices(tnet, transBack);
             ctrans = tnet;
-            // scrnpts = new double[4, 4];
-            /*screenWidth = this.Width;
-            screenHeight = this.Height;
-
-            origin = new Point(screenWidth / 2, screenHeight / 2);
-
-            double centerx = vertices[0, 0];
-            double centery = vertices[0, 1];
-            double centerz = vertices[0, 2];
-
-            translate(-centerx, -centery, -centerz);
-
-            scale(-shapeHeight);
-
-            for(int i = 0; i < ctrans.GetLength(0); i++)
-            {
-                for (int j = 0; j < ctrans.GetLength(1); j++) 
-                {
-                    Console.Write(ctrans[i, j] + " ");
-                }
-                Console.WriteLine();
-            }
             
-            Console.WriteLine(centerx + " " + centery + " " + centerz);
-
-            translate(centerx, centery, centerz);*/
-            /*
-            ctrans[0, 0] = (origin.Y / shapeHeight);
-            ctrans[1, 1] = -(origin.Y / shapeHeight);
-            ctrans[3, 0] = -(shapeWidth / 2) * (origin.Y / shapeHeight) + origin.X;
-            ctrans[3, 1] = -(shapeHeight / 2) * -(origin.Y / shapeHeight) + origin.Y; */
 
             Invalidate();
 		} // end of RestoreInitialImage
@@ -653,83 +625,125 @@ namespace asgn5v1
 		{        
             if (e.Button == transleftbtn)
             {
+                cont = false;
                 translate(-75.0d, 0.0d);
                 Refresh();
             }
 			if (e.Button == transrightbtn)
             {
+                cont = false;
                 translate(75.0d, 0.0d);
                 Refresh();
             }
 			if (e.Button == transupbtn)
             {
+                cont = false;
                 translate(0.0d, -35.0d);
                 Refresh();
             }
 			
 			if(e.Button == transdownbtn)
 			{
+                cont = false;
                 translate(0.0d, 35.0d);
                 Refresh();
             }
 			if (e.Button == scaleupbtn) 
 			{
+                cont = false;
                 scale(1.10d);
                 Refresh();
             }
 			if (e.Button == scaledownbtn)
             {
+                cont = false;
                 scale(.90d);
                 Refresh();
 			}
 			if (e.Button == rotxby1btn) 
 			{
-                rotateOnce("x");
+                cont = false;
+                rotate("x");
                 Refresh();
 				
 			}
 			if (e.Button == rotyby1btn) 
 			{
-                rotateOnce("y");
+                cont = false;
+                rotate("y");
                 Refresh();
             }
 			if (e.Button == rotzby1btn) 
 			{
-                rotateOnce("z");
+                cont = false;
+                rotate("z");
                 Refresh();
             }
 
 			if (e.Button == rotxbtn) 
 			{
-				
+                cont = false;
+                cont = true;
+				while(cont)
+                {
+                    rotate("x");
+                    Refresh();
+                    Thread.Sleep(50);
+                    Application.DoEvents();
+                    
+                }
 			}
 			if (e.Button == rotybtn) 
 			{
-				
-			}
+                cont = false;
+                cont = true;
+                while (cont)
+                {
+                    rotate("y");
+                    Refresh();
+                    Thread.Sleep(50);
+                    Application.DoEvents();
+
+                }
+            }
 			
 			if (e.Button == rotzbtn) 
 			{
-				
-			}
+                cont = false;
+                cont = true;
+                while (cont)
+                {
+                    rotate("z");
+                    Refresh();
+                    Thread.Sleep(50);
+                    Application.DoEvents();
+
+                }
+            }
 
 			if(e.Button == shearleftbtn)
 			{
-				Refresh();
+                cont = false;
+                shear("left");
+                Refresh();
 			}
 
 			if (e.Button == shearrightbtn) 
 			{
-				Refresh();
+                cont = false;
+                shear("right");
+                Refresh();
 			}
 
 			if (e.Button == resetbtn)
 			{
-				RestoreInitialImage();
+                cont = false;
+                RestoreInitialImage();
 			}
 
 			if(e.Button == exitbtn) 
 			{
+                cont = false;
 				Close();
 			}
 
@@ -767,25 +781,8 @@ namespace asgn5v1
             };
 
             ctrans = multMatrices(ctrans, transformation);
-
             
-
-            /*setIdentity(transformation, 4, 4);
-            transformation[3, 0] = xfactor;
-            transformation[3, 1] = yfactor;
-            transformation[3, 2] = zfactor;
-            for (int i = 0; i < 4; i++)
-            {
-                for (int j = 0; j < 4; j++)
-                {
-                    temp = 0.0d;
-                    for (int k = 0; k < 4; k++)
-                        temp += ctrans[i, k] * transformation[k, j];
-                    ctrans[i, j] = temp;
-                }
-            }*/
         }
-
 
         private void scale(double factor)
         {
@@ -807,7 +804,7 @@ namespace asgn5v1
             translate(scrnpts[0, 0], scrnpts[0, 1], scrnpts[0, 2]);    // translate back
         }
 
-        private void rotateOnce(string axis)
+        private void rotate(string axis)
         {
             double[,] rotation = new double[4,4];
 
@@ -847,7 +844,42 @@ namespace asgn5v1
             ctrans = multMatrices(ctrans, rotation);
 
             translate(scrnpts[0, 0], scrnpts[0, 1], scrnpts[0, 2]);    // translate back
+            
+        }
 
+        private void shear(string direction)
+        {
+            double[,] shearing = new double[4, 4];
+            
+            switch(direction)
+            {
+                case "right":
+                    shearing = new double[,]
+                    {
+                        { 1,    0,      0, 0 },
+                        { -0.1, 1,      0, 0 },
+                        { 0,    0,      1, 0 },
+                        { 0,    0,      0, 1 }
+                    };
+                    break;
+
+                case "left":
+                    shearing = new double[,]
+                    {
+                        { 1,    0,      0, 0 },
+                        { 0.1,  1,      0, 0 }, 
+                        { 0,    0,      1, 0 },
+                        { 0,    0,      0, 1 }
+                    };
+                    break;
+            }
+
+
+            translate(-scrnpts[0, 0], -scrnpts[0, 1], -scrnpts[0, 2]);  // translate to 0 0
+
+            ctrans = multMatrices(ctrans, shearing);                    // shear
+
+            translate(scrnpts[0, 0], scrnpts[0, 1], scrnpts[0, 2]);     // translate back
 
 
         }
